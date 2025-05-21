@@ -3,6 +3,8 @@ import mongoose from "mongoose"
 import dotenv from "dotenv"
 import cors from "cors"
 
+import commentRoutes from './routes/commentRoutes.js'
+import pdfRoutes from './routes/pdfRoutes.js';
 import authRoutes from "./routes/authRoute.js"
 
 const app = express()
@@ -27,4 +29,6 @@ mongoose.connect(MONGOURL).then(()=>{
 
 
 app.use('/api/auth', authRoutes);
+app.use('/api/pdf', pdfRoutes);
+app.use('api/comment',commentRoutes);
 
