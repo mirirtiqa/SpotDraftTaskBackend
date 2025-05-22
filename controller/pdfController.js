@@ -69,7 +69,7 @@ export const getPDFs = async(req,res)=>{
         const pdfs = await PDF.find(
             { owner: req.user.id },
             { 
-              _id: 0, 
+              _id: 1, 
               fileName: 1,  
               filePath: 1, 
               createdAt: 1,
@@ -80,6 +80,21 @@ export const getPDFs = async(req,res)=>{
       }
 
 
+}
+
+//---------------------fetching a pdf by id-------------------
+export const getPDFbyId = async (req,res) =>{
+    const { pdfId } = req.params;
+
+    try {
+        const pdf = await PDF.findById(pdfId);
+        if (!pdf || String(pdf.owner) !== req.user.id)
+            return res.status(403).json({ message: 'Unauthorized or file not found' });
+        const pdfData = { filePath: pdf.filePath, fileName: pdf.fileName, pdfId: pdf._id }
+        res.status(200).json(pdfData);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to retrieve PDF', error: error.message });
+    }
 }
 
 //------------------sharing a pdf--------------------
@@ -122,8 +137,6 @@ export const viewSharedPDF = async(req,res)=>{
     catch(error){
         res.status(500).json({message: "Cannot retrieve file", error : error.message})
     }
-
-
 }
 
 
