@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { uploadPDF, getPDFs, generateShareLink,viewSharedPDF, getPDFbyId} from '../controller/pdfcontroller.js';
+import { uploadPDF, getPDFs, generateShareLink,viewSharedPDF, getPDFbyId, getPDFurl} from '../controller/pdfcontroller.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -20,5 +20,6 @@ router.get('/getpdfs', authMiddleware,getPDFs)
 router.get('/share/:pdfId',authMiddleware,generateShareLink)
 router.get('/shared/:token',viewSharedPDF)
 router.get('/getpdf/:pdfId',authMiddleware,getPDFbyId)
+router.get('/getpdfurl/:gcsfilename',authMiddleware,getPDFurl)
 
 export default router;

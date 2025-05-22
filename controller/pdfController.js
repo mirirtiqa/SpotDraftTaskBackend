@@ -11,33 +11,27 @@ export const uploadPDF = async (req, res) => {
     const file = req.file;
     if (!file) return res.status(400).json({ message: 'No file uploaded' });
 
-   const gcsFileName = `pdfs/${Date.now()}-${file.originalname}`;
-const blob = bucket.file(gcsFileName);
+    const gcsFileName = `${Date.now()}-${file.originalname}`;
+    const blob = bucket.file(gcsFileName);
 
-const token = uuidv4();
 
 const blobStream = blob.createWriteStream({
-  resumable: false,
   metadata: {
     contentType: file.mimetype,
-    metadata: {
-      firebaseStorageDownloadTokens: token,
-    },
   },
 });
 
 blobStream.on('error', (err) => {
   console.error(err);
-  return res.status(500).json({ message: 'GCS upload error', error: err.message });
+  return res.status(500).json({ message: 'Error while uploading to GCS', error: err.message });
 });
 
 blobStream.on('finish', async () => {
-  const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(gcsFileName)}?alt=media&token=${token}`;
 
             const newPDF = new PDF({
               owner: req.user.id,
               fileName: file.originalname,
-              filePath: publicUrl,
+              gcsFileName: gcsFileName,
               createdAt: Date.now()
 
             });
@@ -46,8 +40,9 @@ blobStream.on('finish', async () => {
 
       await newPDF.save();
       const pdfDetails = {
+        pdfId: newPDF._id,
         name: newPDF.fileName,
-        url: newPDF.filePath,
+        gcsFileName: newPDF.gcsFileName,
         createdOn: newPDF.createdAt
       }
 
@@ -64,8 +59,34 @@ blobStream.on('finish', async () => {
   }
 };
 
+//-------------------------getting signed url of a pdf---------------------------------
+//----this gets the signed url of a pdf from Google Cloud Storage, and sends it to the client
+export const getPDFurl = async(req,res)=>{
+  const gcsfileName = req.params.gcsfilename;
 
-//----------------------fetching the names,urls from a users PDF Collection-------------------------
+  const file = bucket.file(gcsfileName);
+  try{
+    const  [exists] = await file.exists();
+    if(!exists){
+      return res.status(404).json({message: "File not found"})
+    }
+    
+    const signedUrl = await file.getSignedUrl({
+      action: 'read',
+      expires : Date.now() + 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({url: signedUrl[0]})
+
+
+  }catch(error){
+    console.log(error)
+  }
+
+}
+
+
+//----------------------fetching the names,id's of pdfs from a users PDF Collection-------------------------
 export const getPDFs = async(req,res)=>{
 
     try {
@@ -74,7 +95,7 @@ export const getPDFs = async(req,res)=>{
             { 
               _id: 1, 
               fileName: 1,  
-              filePath: 1, 
+              gcsFileName: 1,
               createdAt: 1,
             });
         return res.status(200).json(pdfs);
@@ -93,7 +114,7 @@ export const getPDFbyId = async (req,res) =>{
         const pdf = await PDF.findById(pdfId);
         if (!pdf || String(pdf.owner) !== req.user.id)
             return res.status(403).json({ message: 'Unauthorized or file not found' });
-        const pdfData = { filePath: pdf.filePath, fileName: pdf.fileName, pdfId: pdf._id }
+        const pdfData = { gcsFileName: pdf.gcsFileName, fileName: pdf.fileName, pdfId: pdf._id }
         res.status(200).json(pdfData);
     } catch (error) {
         res.status(500).json({ message: 'Failed to retrieve PDF', error: error.message });
