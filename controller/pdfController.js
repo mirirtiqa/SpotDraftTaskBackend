@@ -11,33 +11,36 @@ export const uploadPDF = async (req, res) => {
     const file = req.file;
     if (!file) return res.status(400).json({ message: 'No file uploaded' });
 
-    const gcsFileName = `pdfs/${Date.now()}-${file.originalname}`;
-    const blob = bucket.file(gcsFileName);
-    const blobStream = blob.createWriteStream({
-      resumable: false,
-      metadata: {
-        contentType: file.mimetype,
-        metadata: {
-          firebaseStorageDownloadTokens: uuidv4(),
-        },
-      },
-    });
+   const gcsFileName = `pdfs/${Date.now()}-${file.originalname}`;
+const blob = bucket.file(gcsFileName);
 
-    blobStream.on('error', (err) => {
-      console.error(err);
-      return res.status(500).json({ message: 'GCS upload error', error: err.message });
-    });
+const token = uuidv4();
 
-    blobStream.on('finish', async () => {
-      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${gcsFileName}`;
+const blobStream = blob.createWriteStream({
+  resumable: false,
+  metadata: {
+    contentType: file.mimetype,
+    metadata: {
+      firebaseStorageDownloadTokens: token,
+    },
+  },
+});
 
-      const newPDF = new PDF({
-        owner: req.user.id,
-        fileName: file.originalname,
-        filePath: publicUrl,
-        createdAt: Date.now()
+blobStream.on('error', (err) => {
+  console.error(err);
+  return res.status(500).json({ message: 'GCS upload error', error: err.message });
+});
 
-      });
+blobStream.on('finish', async () => {
+  const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(gcsFileName)}?alt=media&token=${token}`;
+
+            const newPDF = new PDF({
+              owner: req.user.id,
+              fileName: file.originalname,
+              filePath: publicUrl,
+              createdAt: Date.now()
+
+            });
 
 
 

@@ -30,5 +30,5 @@ mongoose.connect(MONGOURL).then(()=>{
 
 app.use('/api/auth', authRoutes);
 app.use('/api/pdf', pdfRoutes);
-app.use('api/comment',commentRoutes);
+app.use('/api/comments',commentRoutes);
 

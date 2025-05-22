@@ -1,8 +1,7 @@
 import Comment from "../model/commentModel.js"
 
 export const addComment = async (req, res) => {
-  const { pdfId } = req.params;
-  const { authorName, content} = req.body;
+  const { authorName, content,pdfId} = req.body;
 
   try {
     const comment = new Comment({ pdfId, authorName, content});
