@@ -63,6 +63,37 @@ blobStream.on('finish', async () => {
 //----this gets the signed url of a pdf from Google Cloud Storage, and sends it to the client
 export const getPDFurl = async(req,res)=>{
   const gcsfileName = req.params.gcsfilename;
+console.log("gcsfilename is",gcsfileName)
+  const file = bucket.file(gcsfileName);
+  try{
+    const  [exists] = await file.exists();
+    if(!exists){
+      return res.status(404).json({message: "File not found"})
+    }
+    
+    const signedUrl = await file.getSignedUrl({
+      action: 'read',
+      expires : Date.now() + 60 * 60 * 1000,
+    });
+    console.log("signed url is",signedUrl[0])
+    return res.status(200).json({url: signedUrl[0]})
+
+
+  }catch(error){
+    console.log(error)
+  }
+
+}
+//-------------------------getting signed url of a shared pdf---------------------------------
+export const getSharedPDFurl = async(req,res)=>{
+  const gcsfileName = req.params.gcsfilename;
+  const token = req.params.token;
+  const pdf = await PDF.findOne({shareToken: token})
+        if(!pdf){
+            return res.status(404).json({message:"File not found or token has expired"})
+        }
+  
+
 
   const file = bucket.file(gcsfileName);
   try{
@@ -84,6 +115,8 @@ export const getPDFurl = async(req,res)=>{
   }
 
 }
+
+
 
 
 //----------------------fetching the names,id's of pdfs from a users PDF Collection-------------------------
@@ -156,7 +189,7 @@ export const viewSharedPDF = async(req,res)=>{
             return res.status(404).json({message:"File not found or token has expired"})
         }
 
-        res.status(200).json({ filePath: pdf.filePath, fileName: pdf.fileName, pdfId: pdf._id })
+        res.status(200).json({ gcsFileName: pdf.gcsFileName, fileName: pdf.fileName, pdfId: pdf._id })
     }
     catch(error){
         res.status(500).json({message: "Cannot retrieve file", error : error.message})
