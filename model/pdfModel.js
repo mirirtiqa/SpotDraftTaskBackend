@@ -5,7 +5,7 @@ const PDFSchema = new mongoose.Schema({
   gcsFileName: String,
   sharedWith: [String],
   createdAt: { type: Date, default: Date.now },
-  shareToken: { type: String, unique: true }
+  shareToken: { type: String }
 });
 
 export default mongoose.model("PDF",PDFSchema);

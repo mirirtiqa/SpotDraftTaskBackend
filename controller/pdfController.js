@@ -32,6 +32,7 @@ blobStream.on('finish', async () => {
               owner: req.user.id,
               fileName: file.originalname,
               gcsFileName: gcsFileName,
+              shareToken: uuidv4(),
               createdAt: Date.now()
 
             });
