@@ -1,6 +1,6 @@
-# 📘 PDF Collaboration System — Backend
+# PDF Management and Collaboration System — Backend
 
-This is the backend of a PDF Management & Collaboration System.
+This is the backend of a PDF Management & Collaboration Application. The application can be accessed at [spot-draft-task-frontend.vercel.app](spot-draft-task-frontend.vercel.app)
 
 ---
 
