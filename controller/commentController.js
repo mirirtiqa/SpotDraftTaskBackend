@@ -44,7 +44,7 @@ export const getComments = async (req, res) => {
             }
 
     try {
-      const comments = await Comment.find({ pdfId: req.params.pdfId }).sort({ createdAt: 1 });
+      const comments = await Comment.find({ pdfId: req.params.pdfId });
       return res.json({ comments });
     } catch (err) {
       return res.status(500).json({ message: 'Error fetching comments', error: err.message });

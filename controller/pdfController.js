@@ -2,6 +2,7 @@ import bucket from '../config/gcs.js';
 import PDF from '../model/pdfModel.js';
 import { v4 as uuidv4 } from 'uuid';
 import User from '../model/userModel.js'
+import sendEmail from '../utils/sendEmail.js';
 
 
 //-------------------------uploading a pdf---------------------------------
@@ -195,6 +196,33 @@ export const viewSharedPDF = async(req,res)=>{
     catch(error){
         res.status(500).json({message: "Cannot retrieve file", error : error.message})
     }
+}
+
+
+//-----------------------sending share link through email --------------------
+export const sendEmailWithShareLink = async (req, res) => {
+  const {email,shareUrl,name} = req.body;
+  try{
+    console.log("email is",email)
+    console.log("shareUrl is",shareUrl)
+    if (!email || !shareUrl || !name) {
+      console.log("email or shareUrl or name not provided")
+      throw new Error("email or shareUrl not provided")
+    }
+
+    await sendEmail({
+      recepient: email,
+      subject: "Shared PDF Link",
+      text: `${name} wants to share a pdf with you. Click the link below to access it:\n\n${shareUrl}`
+    });
+
+    res.status(200).json({message: "Email sent successfully"});
+    
+  }
+  catch(error){
+    console.log(error)
+    res.status(500).json({message: "Cannot send email", error : error.message})
+  }
 }
 
 

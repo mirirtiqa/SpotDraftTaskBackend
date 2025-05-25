@@ -16,7 +16,9 @@ const userSchema = new mongoose.Schema({
     },
     pdfs: {
         type: Array
-    }
+    },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
     
 
 })
